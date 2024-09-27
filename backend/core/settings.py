@@ -47,6 +47,7 @@ LOCAL_APPS = [
     'inventory',
     'order',
     'store',
+    'world',
 ]
 
 THIRD_PARTY_APPS = [
