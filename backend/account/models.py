@@ -208,6 +208,10 @@ class CustomerUser(models.Model):
             if first_name or last_name:
                 return f'{first_name} {last_name}'.strip()
         return self.user.email
+    
+    class Meta:
+        verbose_name = _('Customer')
+        verbose_name_plural = _('Customers')
 
 # STAFF
 class Person(models.Model):
@@ -239,7 +243,13 @@ class Person(models.Model):
 
 # signals Warehouse, Manager, Employee
 class Manager(Person):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, verbose_name=_('User'))
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        verbose_name=_('User'),
+        related_name='manager_profile'
+    )
     warehouse = models.OneToOneField(
         Warehouse,
         on_delete=models.SET_NULL,
@@ -260,7 +270,13 @@ class Manager(Person):
         return f'{self.first_name} {self.last_name}'
 
 class Employee(Person):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, verbose_name=_('User'))
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        verbose_name=_('User'),
+        related_name='employee_profile'
+    )
     position = models.CharField(_('Position'), max_length=64, default="Warehouse Attendant")
     warehouse = models.ForeignKey(
         Warehouse,
