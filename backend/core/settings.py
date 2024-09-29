@@ -55,6 +55,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
+    'phonenumber_field'
     # 'django_extensions',
     # 'parler',
 ]
