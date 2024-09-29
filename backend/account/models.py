@@ -138,7 +138,7 @@ class Address(models.Model):
         verbose_name=_('Country'),
         null=True
     )
-    country_area = models.CharField(max_length=128, blank=True)
+    country_area = models.CharField(_('Country Area'), max_length=128, blank=True, help_text='Northern America')
 
     def __str__(self) -> str:
         return self.address_name
