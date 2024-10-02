@@ -107,7 +107,65 @@ class Product(models.Model):
         verbose_name = _('Product')
         verbose_name_plural = _('Products')
 
+class ProductVariant(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="variants"
+    )
+    sku = models.CharField(max_length=64, unique=True)
+    
+    # 
+    upc = models.CharField(
+        max_length=12,
+        unique=True,
+        validators=[validate_upc],
+        help_text='Universal Product Code',
+        null=True,
+        blank=True
+    )
+    name = models.CharField(max_length=255, blank=True)
 
+    weight = MeasurementField(
+        measurement=Weight,
+        unit_choices=WeightUnits.CHOICES,
+        blank=True,
+        null=True
+    )
+
+    quantity_limit_per_customer = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1)])
+
+    #Price
+    cost_price = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        null=True,
+        blank=True
+    )
+    selling_price = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def get_weight(self):
+        return self.weight or self.product.weight
+    
+    def is_shipping_required(self) -> bool:
+        return self.product.product_type.is_shipping_required
+    
+    def is_digital(self) -> bool:
+        return self.product.product_type.is_digital
+
+    def __str__(self) -> str:
+        return self.name or self.sku or f'ID: {self.pk}'
+    
+    class Meta:
+        verbose_name = _('Product Variant')
+        verbose_name_plural = _('Product Variants')
 
     
     
