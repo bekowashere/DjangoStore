@@ -1,5 +1,4 @@
 from django.db import models
-import uuid
 from django.utils.translation import gettext_lazy as _
 
 # MODELS
@@ -7,7 +6,6 @@ from world.models import Country
 
 # Create your models here.
 class Location(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_('Location Name'), max_length=64, unique=True)
     address_line = models.CharField(_('Street Address 1'), max_length=256)
     postal_code = models.CharField(_('Postal Code'), max_length=32)
