@@ -12,7 +12,7 @@ from django_measurement.models import MeasurementField
 from . import ProductMediaTypes
 from product.validators import validate_upc
 from core import settings
-from core.utils.image_path import upload_category_background_image
+from core.utils.image_path import upload_category_background_image, upload_product_media
 from core.utils.weight import zero_weight
 from core.units import WeightUnits
 from core.models import SortableModel
@@ -89,7 +89,14 @@ class Product(models.Model):
         blank=True,
         null=True
     )
-    #  default_variant
+    
+    default_variant = models.OneToOneField(
+        "ProductVariant",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
 
     rating = models.FloatField(null=True, blank=True)
 
@@ -98,7 +105,13 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # def get_first_image
+    def get_all_media(self):
+        return self.media.all()
+
+    def get_first_image(self):
+        all_media = self.get_all_media()
+        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
+        return images[0] if images else None
 
     def __str__(self) -> str:
         return self.name
@@ -166,6 +179,55 @@ class ProductVariant(models.Model):
     class Meta:
         verbose_name = _('Product Variant')
         verbose_name_plural = _('Product Variants')
+
+class ProductMedia(SortableModel):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="media"
+    )
+
+    image = models.ImageField(upload_to=upload_product_media, null=True, blank=True)
+    alt = models.CharField(max_length=255, blank=True)
+    media_type = models.CharField(
+        max_length=32,
+        choices=ProductMediaTypes.CHOICES,
+        default=ProductMediaTypes.IMAGE
+    )
+    external_url = models.CharField(max_length=255, null=True, blank=True)
+
+    def get_ordering_queryset(self):
+        if not self.product:
+            return ProductMedia.objects.none()
+        return self.product.media.all()
+    
+    def __str__(self) -> str:
+        return f"{self.product}'s media"
+    
+    class Meta:
+        ordering = ('sort_order', 'pk')
+        verbose_name = _('Product Media')
+        verbose_name_plural = _('Product Media')
+
+class VariantMedia(models.Model):
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        related_name="variant_media"
+    )
+    media = models.ForeignKey(
+        ProductMedia,
+        on_delete=models.CASCADE,
+        related_name="m_variant_media"
+    )
+
+    def __str__(self) -> str:
+        return f"{self.variant}'s media object"
+
+    class Meta:
+        unique_together = ("variant", "media")
+        verbose_name = _('Product Variant Media')
+        verbose_name_plurals = _('Product Variant Media')
 
     
     

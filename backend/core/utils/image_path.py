@@ -12,3 +12,7 @@ def upload_category_background_image(instance, filename):
     filebase, extension = filename.rsplit(".")
     return f'product/categories/{instance.slug}.{extension}'
     
+
+def upload_product_media(instance, filename):
+    filebase, extension = filename.rsplit(".")
+    return f'product/products/{instance.product.uuid}.{extension}'
