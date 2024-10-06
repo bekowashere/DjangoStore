@@ -153,11 +153,13 @@ class ProductVariant(models.Model):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         null=True,
-        blank=True
+        blank=True,
+        validators=[MinValueValidator(0)]
     )
     selling_price = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        validators=[MinValueValidator(0)]
     )
 
     # Metadata
@@ -199,7 +201,8 @@ class ProductMedia(SortableModel):
     def get_ordering_queryset(self):
         if not self.product:
             return ProductMedia.objects.none()
-        return self.product.media.all()
+        # return self.product.media.all()
+        return self.product.media.select_related('product').all()
     
     def __str__(self) -> str:
         return f"{self.product}'s media"
