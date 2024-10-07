@@ -11,6 +11,7 @@ from django_measurement.models import MeasurementField
 
 from . import ProductMediaTypes
 from product.validators import validate_upc
+from product.utils import generate_product_code, generate_upc_ean13, generate_upc_code, generate_ean13_code
 from core import settings
 from core.utils.image_path import upload_category_background_image, upload_product_media
 from core.utils.weight import zero_weight
@@ -126,17 +127,20 @@ class ProductVariant(models.Model):
         on_delete=models.CASCADE,
         related_name="variants"
     )
-    sku = models.CharField(max_length=64, unique=True)
     
-    # 
-    upc = models.CharField(
+    #
+    sku = models.CharField(max_length=64, unique=True)
+
+    variant_code = models.CharField(max_length=5, unique=True, null=True, blank=True)
+    upc_code = models.CharField(
         max_length=12,
         unique=True,
         validators=[validate_upc],
-        help_text='Universal Product Code',
         null=True,
         blank=True
     )
+    ean13_code = models.CharField(max_length=13, unique=True, null=True, blank=True)
+
     name = models.CharField(max_length=255, blank=True)
 
     weight = MeasurementField(
@@ -177,6 +181,16 @@ class ProductVariant(models.Model):
 
     def __str__(self) -> str:
         return self.name or self.sku or f'ID: {self.pk}'
+    
+    def save(self, *args, **kwargs):
+        if not self.variant_code:
+            self.variant_code = generate_product_code()        
+        #self.upc_code, self.ean13_code = generate_upc_ean13(product_code=self.variant_code)
+        if not self.upc_code:
+            self.upc_code = generate_upc_code(product_code=self.variant_code)
+        if not self.ean13_code:
+            self.ean13_code = generate_ean13_code(product_code=self.variant_code)
+        super().save(*args, **kwargs)
     
     class Meta:
         verbose_name = _('Product Variant')
